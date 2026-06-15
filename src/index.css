@@ -90,6 +90,68 @@ body {
   mix-blend-mode: soft-light;
 }
 
+.avatar-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.ari-avatar {
+  width: clamp(74px, 10vw, 120px);
+  height: clamp(74px, 10vw, 120px);
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 10px 20px rgba(70, 56, 42, 0.18));
+}
+
+.ari-avatar svg {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-head {
+  fill: #f4c9a9;
+}
+
+.avatar-eye {
+  fill: #3a2f27;
+}
+
+.avatar-smile {
+  fill: none;
+  stroke: #3f3229;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.avatar-body {
+  fill: url(#shirt);
+}
+
+.avatar-limb,
+.avatar-leg {
+  fill: #e0ae87;
+}
+
+.avatar-laptop {
+  fill: #5f7489;
+}
+
+.avatar-screen {
+  fill: #d9e6f2;
+}
+
+.avatar-plane {
+  fill: none;
+  stroke: #6f5c4b;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .page-wrap {
   width: min(1100px, 92vw);
   margin: 0 auto;
@@ -387,5 +449,11 @@ body {
 
   .cursor-glow {
     display: none;
+  }
+
+  .ari-avatar {
+    width: 76px;
+    height: 76px;
+    opacity: 0.9;
   }
 }

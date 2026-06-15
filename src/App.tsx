@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 
 const snapshotCards = [
   {
@@ -70,8 +70,144 @@ const builtItems = [
   },
 ];
 
+type AvatarMode = "wave" | "walk" | "point" | "laptop" | "goodbye";
+
+function AriAvatarGuide({ mode }: { mode: AvatarMode }) {
+  const isWave = mode === "wave" || mode === "goodbye";
+  const isWalk = mode === "walk";
+  const isPoint = mode === "point";
+  const hasLaptop = mode === "laptop";
+
+  return (
+    <motion.div
+      className="ari-avatar"
+      animate={{ y: [0, -5, 0] }}
+      transition={{ duration: isWalk ? 0.7 : 2.2, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <svg viewBox="0 0 180 180" aria-hidden="true">
+        <defs>
+          <linearGradient id="shirt" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stopColor="#6f8aa5" />
+            <stop offset="100%" stopColor="#4f6b84" />
+          </linearGradient>
+        </defs>
+
+        <motion.path
+          d="M70 165 L95 145 L120 162"
+          className="avatar-plane"
+          animate={mode === "point" ? { x: [0, 14, 0], y: [0, -8, 0] } : { opacity: 0.5 }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <motion.circle cx="90" cy="52" r="23" className="avatar-head" />
+        <circle cx="81" cy="50" r="2.7" className="avatar-eye" />
+        <circle cx="99" cy="50" r="2.7" className="avatar-eye" />
+        <path d="M82 61 Q90 67 98 61" className="avatar-smile" />
+
+        <motion.rect
+          x="62"
+          y="76"
+          width="56"
+          height="52"
+          rx="14"
+          className="avatar-body"
+          animate={isWalk ? { rotate: [1.2, -1.2, 1.2] } : { rotate: 0 }}
+          transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformOrigin: "90px 95px" }}
+        />
+
+        <motion.rect
+          x="54"
+          y="86"
+          width="14"
+          height="38"
+          rx="7"
+          className="avatar-limb"
+          animate={
+            isWave
+              ? { rotate: [-18, 42, -18] }
+              : isPoint
+                ? { rotate: [-8, -20, -8] }
+                : { rotate: isWalk ? [12, -8, 12] : 3 }
+          }
+          transition={{ duration: isWave ? 0.45 : 0.7, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformOrigin: "61px 90px" }}
+        />
+
+        <motion.rect
+          x="112"
+          y="86"
+          width="14"
+          height="38"
+          rx="7"
+          className="avatar-limb"
+          animate={
+            isPoint
+              ? { rotate: [-22, -42, -22] }
+              : isWalk
+                ? { rotate: [-10, 10, -10] }
+                : { rotate: 0 }
+          }
+          transition={{ duration: 0.75, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformOrigin: "119px 90px" }}
+        />
+
+        {hasLaptop && (
+          <motion.g
+            animate={{ y: [0, -2, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <rect x="46" y="118" width="54" height="28" rx="4" className="avatar-laptop" />
+            <rect x="48" y="120" width="50" height="18" rx="2" className="avatar-screen" />
+          </motion.g>
+        )}
+
+        <motion.rect
+          x="72"
+          y="127"
+          width="12"
+          height="35"
+          rx="6"
+          className="avatar-leg"
+          animate={isWalk ? { rotate: [14, -14, 14] } : { rotate: 0 }}
+          transition={{ duration: 0.55, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformOrigin: "78px 130px" }}
+        />
+        <motion.rect
+          x="96"
+          y="127"
+          width="12"
+          height="35"
+          rx="6"
+          className="avatar-leg"
+          animate={isWalk ? { rotate: [-14, 14, -14] } : { rotate: 0 }}
+          transition={{ duration: 0.55, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transformOrigin: "102px 130px" }}
+        />
+      </svg>
+    </motion.div>
+  );
+}
+
 function App() {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const { scrollYProgress } = useScroll();
+
+  const avatarX = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], ["8vw", "74vw", "14vw", "76vw", "12vw"]);
+  const avatarY = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], ["72vh", "76vh", "74vh", "72vh", "76vh"]);
+
+  const [avatarMode, setAvatarMode] = useState<AvatarMode>("wave");
+
+  const sectionMap = useMemo(
+    () => [
+      { id: "hero", mode: "wave" as AvatarMode },
+      { id: "story", mode: "walk" as AvatarMode },
+      { id: "built", mode: "point" as AvatarMode },
+      { id: "skills", mode: "laptop" as AvatarMode },
+      { id: "contact", mode: "goodbye" as AvatarMode },
+    ],
+    [],
+  );
 
   useEffect(() => {
     const onMove = (event: MouseEvent) => {
@@ -81,6 +217,23 @@ function App() {
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
   }, []);
+
+  useMotionValueEvent(scrollYProgress, "change", () => {
+    const viewportMid = window.innerHeight * 0.4;
+
+    for (const section of sectionMap) {
+      const el = document.getElementById(section.id);
+      if (!el) {
+        continue;
+      }
+
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= viewportMid && rect.bottom >= viewportMid) {
+        setAvatarMode(section.mode);
+        return;
+      }
+    }
+  });
 
   return (
     <div className="resume-root">
@@ -95,8 +248,13 @@ function App() {
         transition={{ type: "spring", stiffness: 70, damping: 22, mass: 0.2 }}
       />
 
+      <motion.div className="avatar-layer" style={{ x: avatarX, y: avatarY }}>
+        <AriAvatarGuide mode={avatarMode} />
+      </motion.div>
+
       <main className="page-wrap">
         <motion.section
+          id="hero"
           className="hero"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -120,6 +278,7 @@ function App() {
         </motion.section>
 
         <motion.section
+          id="story"
           className="section"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -149,6 +308,7 @@ function App() {
         </motion.section>
 
         <motion.section
+          id="skills"
           className="section"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
