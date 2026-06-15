@@ -1,0 +1,46 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Outfit", sans-serif;
+  background: #07090f;
+  color: #eaf2ff;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.cinematic-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.glass-card {
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(16px);
+}
+
+.gradient-text {
+  background: linear-gradient(95deg, #e7f0ff 5%, #8ce8d8 45%, #85b3ff 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
