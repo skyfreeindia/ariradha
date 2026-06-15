@@ -1,337 +1,307 @@
-import { motion } from "framer-motion";
-import type { CSSProperties } from "react";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-const HERO_WORDS = ["AI", "Builder.", "SaaS", "Founder.", "Automation", "Thinker."];
-
-const SKILLS = [
-  "AI Automation",
-  "ETL + Data Quality",
-  "Cloud Systems",
-  "SaaS Architecture",
-  "Debugging",
-  "Prompt Engineering",
-  "Product Thinking",
-  "Growth Execution",
-];
-
-const WORKFLOW = [
-  {
-    title: "Claude Haiku / Sonnet",
-    text: "Fast thinking loops and cost-effective daily development for speed without losing quality.",
-  },
-  {
-    title: "GPT",
-    text: "Reasoning depth, refined writing, and structured planning for product decisions.",
-  },
-  {
-    title: "Codex",
-    text: "Code generation, debugging, and refactoring directly inside real shipping workflows.",
-  },
-];
-
+const CHAPTERS = 6;
+const JOURNEY = ["India", "Data Engineering", "Canada", "AI Builder", "Sky Free"];
 const PROJECTS = [
-  {
-    name: "Sky Free / XpressBot",
-    details:
-      "Omnichannel messaging, chatbot automation, campaigns, and white-label SaaS for real business operations.",
-  },
-  {
-    name: "AI Agent Workflows",
-    details:
-      "AWS Bedrock AgentCore, Strands agents, Lambda tools, Step Functions, DynamoDB, and structured logging.",
-  },
-  {
-    name: "Data Quality Automation",
-    details:
-      "ETL validation, rules engine thinking, SQL testing, and data warehouse checks to protect data trust.",
-  },
+  "Sky Free / XpressBot",
+  "AI Agent Workflows",
+  "Data Quality Automation",
 ];
+const ORBIT_TOOLS = ["Claude", "GPT", "Codex"];
 
-const TIMELINE = [
-  { year: "2021", event: "Started building practical automation-first products." },
-  { year: "2023", event: "Scaled multi-channel SaaS operations with white-label architecture." },
-  { year: "2025", event: "Integrated AI agents into daily execution and product pipelines." },
-  { year: "Now", event: "Focused on faster experimentation, stronger systems, and global SaaS scale." },
-];
+function useTypewriter(words: string[], speed = 85, pause = 1300) {
+  const [text, setText] = useState("");
+  const [wordIndex, setWordIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
 
-const CONTACTS = [
-  { label: "Email", href: "mailto:hello@ariradha.com" },
-  { label: "GitHub", href: "https://github.com/ariradha" },
-  { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "X/Twitter", href: "https://x.com" },
-];
+  useEffect(() => {
+    const current = words[wordIndex % words.length];
+    const done = !deleting && text === current;
+    const cleared = deleting && text.length === 0;
 
-const sectionMotion = {
-  hidden: { opacity: 0, y: 45 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: "easeOut" } },
-};
+    const timeout = setTimeout(
+      () => {
+        if (done) {
+          setDeleting(true);
+          return;
+        }
 
-function ParticleLayer() {
+        if (cleared) {
+          setDeleting(false);
+          setWordIndex((prev) => prev + 1);
+          return;
+        }
+
+        setText((prev) => (deleting ? prev.slice(0, -1) : current.slice(0, prev.length + 1)));
+      },
+      done ? pause : deleting ? speed * 0.6 : speed,
+    );
+
+    return () => clearTimeout(timeout);
+  }, [deleting, pause, speed, text, wordIndex, words]);
+
+  return text;
+}
+
+function AuroraBackground() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {Array.from({ length: 34 }).map((_, index) => {
-        const size = 2 + (index % 4);
-        const left = (index * 97) % 100;
-        const delay = (index % 9) * 0.4;
-        const duration = 6 + (index % 7);
-
-        return (
-          <motion.span
-            key={index}
-            className="absolute rounded-full bg-white/70"
-            style={{
-              width: `${size}px`,
-              height: `${size}px`,
-              left: `${left}%`,
-              top: `${(index * 29) % 100}%`,
-            }}
-            animate={{ y: [0, -20, 10, 0], opacity: [0.2, 0.95, 0.35, 0.2] }}
-            transition={{ duration, repeat: Infinity, delay, ease: "easeInOut" }}
-          />
-        );
-      })}
+    <div className="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
+      <div className="aurora-base" />
+      <motion.div
+        className="aurora-wave wave-a"
+        animate={{ x: ["-8%", "10%", "-8%"], y: ["-4%", "6%", "-4%"] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="aurora-wave wave-b"
+        animate={{ x: ["10%", "-6%", "10%"], y: ["8%", "-8%", "8%"] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <div className="animated-grid" />
+      {Array.from({ length: 60 }).map((_, i) => (
+        <motion.span
+          key={`particle-${i}`}
+          className="particle"
+          style={{
+            left: `${(i * 37) % 100}%`,
+            top: `${(i * 53) % 100}%`,
+            width: `${2 + (i % 4)}px`,
+            height: `${2 + (i % 4)}px`,
+          }}
+          animate={{
+            y: [0, -18, 6, 0],
+            x: [0, i % 2 === 0 ? 6 : -6, 0],
+            opacity: [0.3, 0.9, 0.35],
+          }}
+          transition={{
+            duration: 6 + (i % 7),
+            delay: (i % 12) * 0.22,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+      <div className="orb orb-cyan" />
+      <div className="orb orb-pink" />
+      <div className="orb orb-purple" />
     </div>
   );
 }
 
-function OrbitSkills() {
+function ChapterWrapper({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="relative mx-auto mt-10 h-[280px] w-[280px] sm:h-[320px] sm:w-[320px]">
-      <div className="absolute inset-0 rounded-full border border-white/15 bg-white/[0.03]" />
-      <div className="absolute inset-[22%] rounded-full border border-glow/35 bg-sky/10 shadow-glow" />
-      <div className="absolute inset-0 flex items-center justify-center text-center">
-        <div>
-          <p className="font-['Sora'] text-[0.8rem] uppercase tracking-[0.22em] text-slate-300">Core Mode</p>
-          <p className="mt-2 text-2xl font-semibold text-white">Ari Radha</p>
-        </div>
+    <section
+      id={id}
+      className="chapter relative flex h-screen w-screen shrink-0 items-center justify-center px-6 py-8"
+    >
+      <div className="chapter-shell">
+        <p className="chapter-tag">{title}</p>
+        {children}
       </div>
-      {SKILLS.map((skill, idx) => {
-        const customStyle = {
-          animationDelay: `${idx * 0.45}s`,
-        } as CSSProperties;
+    </section>
+  );
+}
 
-        return (
-          <div key={skill} className="absolute left-1/2 top-1/2" style={customStyle}>
-            <div className="animate-orbit">
-              <span className="-translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs text-slate-200 shadow-card">
-                {skill}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
+function PlanetCard({ label, description }: { label: string; description: string }) {
+  return (
+    <motion.article
+      className="planet-card"
+      whileHover={{ scale: 1.08, rotateX: 8, rotateY: -10, z: 32 }}
+      transition={{ type: "spring", stiffness: 170, damping: 14 }}
+    >
+      <div className="planet-glow" />
+      <h3>{label}</h3>
+      <p>{description}</p>
+    </motion.article>
   );
 }
 
 function App() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [viewportWidth, setViewportWidth] = useState(1280);
+  const typed = useTypewriter([
+    "AI Builder",
+    "SaaS Founder",
+    "Automation Thinker",
+    "System Storyteller",
+  ]);
+
+  useEffect(() => {
+    const updateWidth = () => setViewportWidth(window.innerWidth);
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  const xRange = useMemo(() => [0, -(CHAPTERS - 1) * viewportWidth], [viewportWidth]);
+  const xRaw = useTransform(scrollYProgress, [0, 1], xRange);
+  const x = useSpring(xRaw, { stiffness: 90, damping: 24, mass: 0.35 });
+
+  const slowParallax = useTransform(scrollYProgress, [0, 1], [0, -180]);
+  const mediumParallax = useTransform(scrollYProgress, [0, 1], [0, -320]);
+
   return (
-    <div className="relative bg-ink text-slate-100">
-      <div className="fixed inset-0 -z-20 bg-hero-radial" />
-      <div className="fixed inset-0 -z-10 cinematic-grid opacity-60" />
-      <ParticleLayer />
+    <div className="story-root">
+      <AuroraBackground />
 
-      <main className="mx-auto max-w-6xl px-5 pb-24 pt-8 sm:px-8">
-        <motion.section
-          initial="hidden"
-          animate="visible"
-          variants={sectionMotion}
-          className="relative min-h-[90vh] rounded-3xl border border-white/10 px-6 py-14 sm:px-10 sm:py-16"
-        >
-          <div className="absolute right-6 top-6 hidden rounded-full border border-glow/40 bg-glow/10 px-4 py-1 text-xs font-medium tracking-[0.2em] text-glow sm:block">
-            ARIRADHA.COM
-          </div>
+      <motion.div
+        className="fixed left-0 top-0 z-20 h-1 origin-left bg-gradient-to-r from-[#7c3aed] via-[#22d3ee] to-[#ec4899]"
+        style={{ scaleX: scrollYProgress, width: "100%" }}
+      />
 
-          <div className="max-w-3xl">
-            <p className="font-['Sora'] text-[0.78rem] uppercase tracking-[0.28em] text-slate-300">Cinematic Personal Experience</p>
-            <h1 className="mt-5 text-5xl font-semibold leading-[0.95] text-white sm:text-7xl">
-              <span className="gradient-text">Ari Radha</span>
-            </h1>
-
-            <div className="mt-5 flex flex-wrap gap-2 text-xl font-medium text-slate-200 sm:text-2xl">
-              {HERO_WORDS.map((word, index) => (
-                <motion.span
-                  key={word + index}
-                  initial={{ opacity: 0, y: 14, filter: "blur(10px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ delay: 0.18 + index * 0.08, duration: 0.45 }}
-                >
-                  {word}
-                </motion.span>
-              ))}
-            </div>
-
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg">
-              I build practical AI-powered products, automation systems, and SaaS platforms that turn ideas into real working businesses.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="#projects"
-                className="rounded-full border border-sky/30 bg-gradient-to-r from-sky/30 to-glow/35 px-7 py-3 text-sm font-semibold tracking-wide text-white shadow-glow transition-transform duration-300 hover:scale-[1.03]"
-              >
-                Explore My Work
-              </a>
-              <a
-                href="#contact"
-                className="rounded-full border border-white/25 bg-white/5 px-7 py-3 text-sm font-semibold tracking-wide text-white transition-colors duration-300 hover:bg-white/12"
-              >
-                Contact Ari
-              </a>
-            </div>
-          </div>
-
-          <OrbitSkills />
-        </motion.section>
-
-        <motion.section
-          id="about"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionMotion}
-          className="mt-10 grid gap-6 md:grid-cols-2"
-        >
-          <div className="glass-card rounded-3xl p-6 sm:p-8">
-            <h2 className="font-['Sora'] text-2xl font-semibold text-white">About Me</h2>
-            <p className="mt-4 leading-relaxed text-slate-300">
-              I am Ari Radha, a SaaS founder and AI-first builder. I work across AI automation, ETL/data quality, cloud systems, and product building. My main focus is creating tools that save time, reduce manual work, and help businesses scale.
-            </p>
-          </div>
-          <div className="glass-card rounded-3xl p-6 sm:p-8">
-            <h2 className="font-['Sora'] text-2xl font-semibold text-white">Personal Philosophy</h2>
-            <p className="mt-4 text-lg leading-relaxed text-slate-200">
-              "I do not just build clean demos. I build real systems, break things, learn fast, and improve until it works."
-            </p>
-          </div>
-        </motion.section>
-
-        <motion.section
-          id="ai-workflow"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionMotion}
-          className="mt-10 rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-9"
-        >
-          <h2 className="font-['Sora'] text-2xl font-semibold text-white">AI Workflow</h2>
-          <p className="mt-4 max-w-4xl leading-relaxed text-slate-300">
-            I use AI as a daily building partner: Claude Haiku/Sonnet for fast thinking and cost-effective development, GPT for reasoning and writing, and Codex for code generation, debugging, and refactoring. I test models by using them on real product tasks, not only benchmarks.
-          </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {WORKFLOW.map((item) => (
-              <motion.article
-                key={item.title}
-                whileHover={{ y: -6, rotateX: 6, rotateY: -4 }}
-                transition={{ type: "spring", stiffness: 180, damping: 15 }}
-                className="glass-card rounded-2xl p-5"
-              >
-                <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-slate-300">{item.text}</p>
-              </motion.article>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          id="projects"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionMotion}
-          className="mt-10"
-        >
-          <h2 className="font-['Sora'] text-2xl font-semibold text-white">Projects</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {PROJECTS.map((project) => (
-              <motion.article
-                key={project.name}
-                whileHover={{ y: -8, rotateX: 8, rotateY: -8 }}
-                transition={{ type: "spring", stiffness: 170, damping: 14 }}
-                className="glass-card rounded-2xl p-6 shadow-card"
-              >
-                <h3 className="text-xl font-semibold text-white">{project.name}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-slate-300">{project.details}</p>
-              </motion.article>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          id="timeline"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionMotion}
-          className="mt-12"
-        >
-          <h2 className="font-['Sora'] text-2xl font-semibold text-white">Timeline</h2>
-          <div className="relative mt-6 border-l border-slate-500/40 pl-6">
-            {TIMELINE.map((item, idx) => (
-              <motion.div
-                key={item.year}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.12, duration: 0.45 }}
-                className="relative mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
-              >
-                <span className="absolute -left-[34px] top-5 h-3 w-3 rounded-full bg-glow shadow-glow" />
-                <p className="text-sm uppercase tracking-[0.18em] text-slate-400">{item.year}</p>
-                <p className="mt-2 text-slate-200">{item.event}</p>
+      <div ref={containerRef} className="relative" style={{ height: `${CHAPTERS * 100}vh` }}>
+        <div className="sticky top-0 h-screen overflow-hidden">
+          <motion.div className="chapters-track flex h-screen" style={{ width: `${CHAPTERS * 100}vw`, x }}>
+            <ChapterWrapper id="chapter-1" title="Chapter 1: The Universe">
+              <motion.div className="absolute inset-0" style={{ y: slowParallax }}>
+                <div className="stars-layer" />
               </motion.div>
-            ))}
-          </div>
-        </motion.section>
+              <div className="z-10 max-w-3xl text-center">
+                <motion.h1
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.9 }}
+                  className="story-title"
+                >
+                  Welcome to Ari&apos;s Universe
+                </motion.h1>
+                <p className="story-subtitle">
+                  I build practical AI-powered products, automation systems, and SaaS platforms that turn ideas
+                  into real working businesses.
+                </p>
+                <div className="typing-line">
+                  <span>{typed}</span>
+                  <span className="typing-cursor" />
+                </div>
+                <p className="scroll-hint">Scroll down to travel horizontally</p>
+              </div>
+            </ChapterWrapper>
 
-        <motion.section
-          id="skills"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionMotion}
-          className="mt-10 rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-9"
-        >
-          <h2 className="font-['Sora'] text-2xl font-semibold text-white">Skills</h2>
-          <div className="mt-5 flex flex-wrap gap-3">
-            {SKILLS.map((skill) => (
-              <span
-                key={skill}
-                className="rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm text-slate-200 transition-transform duration-300 hover:-translate-y-1"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </motion.section>
+            <ChapterWrapper id="chapter-2" title="Chapter 2: Who I Am">
+              <div className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-2">
+                <div>
+                  <h2 className="chapter-title">Ari Radha</h2>
+                  <p className="chapter-copy">
+                    AI Builder. SaaS Founder. Automation Thinker. I design systems that remove friction from
+                    business operations and turn ideas into execution.
+                  </p>
+                </div>
+                <motion.div
+                  className="ai-core"
+                  animate={{ rotateY: [0, 360], rotateX: [8, -8, 8] }}
+                  transition={{
+                    rotateY: { duration: 12, repeat: Infinity, ease: "linear" },
+                    rotateX: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                >
+                  <div className="ai-core-inner">AI CORE</div>
+                </motion.div>
+              </div>
+            </ChapterWrapper>
 
-        <motion.section
-          id="contact"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionMotion}
-          className="mt-12 rounded-3xl border border-sky/30 bg-gradient-to-r from-sky/10 via-white/5 to-glow/10 p-6 sm:p-9"
-        >
-          <h2 className="font-['Sora'] text-2xl font-semibold text-white">Contact</h2>
-          <p className="mt-3 max-w-2xl text-slate-300">
-            Open to product collaborations, AI consulting, and building serious automation systems that ship.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            {CONTACTS.map((contact) => (
-              <a
-                key={contact.label}
-                href={contact.href}
-                target={contact.href.startsWith("http") ? "_blank" : undefined}
-                rel={contact.href.startsWith("http") ? "noreferrer" : undefined}
-                className="rounded-full border border-white/30 bg-black/30 px-5 py-2 text-sm font-medium text-white transition-all duration-300 hover:border-glow/60 hover:bg-glow/10"
-              >
-                {contact.label}
-              </a>
-            ))}
-          </div>
-        </motion.section>
-      </main>
+            <ChapterWrapper id="chapter-3" title="Chapter 3: Journey">
+              <motion.div className="absolute inset-0" style={{ y: mediumParallax }}>
+                <div className="journey-cloud" />
+              </motion.div>
+              <div className="relative z-10 w-full max-w-6xl">
+                <h2 className="chapter-title mb-10 text-center">Journey</h2>
+                <div className="journey-line">
+                  {JOURNEY.map((step, idx) => (
+                    <motion.div
+                      key={step}
+                      className="journey-node"
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.15, duration: 0.5 }}
+                    >
+                      <div className="node-dot" />
+                      <p>{step}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </ChapterWrapper>
+
+            <ChapterWrapper id="chapter-4" title="Chapter 4: Projects">
+              <div className="w-full max-w-6xl">
+                <h2 className="chapter-title mb-8 text-center">Projects As Planets</h2>
+                <div className="grid gap-6 md:grid-cols-3">
+                  <PlanetCard
+                    label={PROJECTS[0]}
+                    description="Omnichannel messaging, chatbot automation, campaigns, and white-label SaaS."
+                  />
+                  <PlanetCard
+                    label={PROJECTS[1]}
+                    description="AWS Bedrock AgentCore, Strands agents, Lambda tools, Step Functions, and DynamoDB."
+                  />
+                  <PlanetCard
+                    label={PROJECTS[2]}
+                    description="ETL validation, SQL testing, rules thinking, and warehouse reliability."
+                  />
+                </div>
+              </div>
+            </ChapterWrapper>
+
+            <ChapterWrapper id="chapter-5" title="Chapter 5: AI Workflow">
+              <div className="orbit-shell">
+                <div className="workflow-core">Ari</div>
+                {ORBIT_TOOLS.map((tool, idx) => (
+                  <div key={tool} className="orbit-wrap" style={{ animationDelay: `${idx * 0.6}s` }}>
+                    <div className="orbit-item">{tool}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="chapter-copy mt-10 max-w-3xl text-center">
+                Claude for fast iteration, GPT for reasoning and writing, and Codex for code generation, debugging,
+                and refactoring in real product tasks.
+              </p>
+            </ChapterWrapper>
+
+            <ChapterWrapper id="chapter-6" title="Chapter 6: Future Vision">
+              <div className="portal-wrap">
+                <motion.div
+                  className="portal-ring"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div
+                  className="portal-ring ring-secondary"
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div
+                  className="portal-core"
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] }}
+                  transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+              <h2 className="chapter-title mt-10 text-center">Future Vision</h2>
+              <p className="chapter-copy max-w-3xl text-center text-xl sm:text-2xl">
+                The future belongs to builders who collaborate with AI.
+              </p>
+              <p className="chapter-copy mt-4 max-w-3xl text-center">
+                This is not a portfolio. It is a living system, a story in motion, and a blueprint for building at
+                AI speed.
+              </p>
+            </ChapterWrapper>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
